@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "ES2019",
+        "module": "commonjs",
+        "declaration": true,
+        "strict": true,
+        "outDir": "./app/",
+        "sourceMap": true,
+        "removeComments": true,
+    },
+    "include": [
+        "./src/**/*.ts",
+        "./src/typings/*.d.ts",
+        "./node_modules/@types/node/index.d.ts", "src/typings/express.ext.d.ts",
+    ],
+    "exclude": [ /* 编译需要排除的文件 */
+        "node_modules/**",
+    ],
+    // 装饰器 for Typeorm
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+}

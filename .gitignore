@@ -1,0 +1,13 @@
+node_modules/
+logs/
+*.log
+.idea/
+.DS_Store
+CMakeFiles/
+*.cmake
+CMakeCache.txt
+Makefile
+/src/c/lib/
+bin/
+nohup.out
+app/
