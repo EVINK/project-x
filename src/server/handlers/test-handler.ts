@@ -1,15 +1,16 @@
-import { Response, Request, Express } from "express"
-import { logger } from "../base/log4j"
-import { auth } from "../utils/auth"
+import { Response, Request, Express } from 'express'
+import { logger } from '../base/log4j'
+import { auth } from '../utils/auth'
 
 import * as express from 'express'
-import { Resify } from "../utils/resify"
-import { RedisClient } from "../base/redis"
-import { getConnection, getManager, Connection } from "typeorm"
-import e = require("express")
-import { resolve } from "path"
-import { MysqlClient } from "../base/mysql"
-import { ParamsChecker } from "../utils/helpers"
+import { Resify } from '../utils/resify'
+import { RedisClient } from '../base/redis'
+import { getConnection, getManager, Connection, Generated } from 'typeorm'
+import e = require('express')
+import { resolve } from 'path'
+import { MysqlClient } from '../base/mysql'
+import { ParamsChecker } from '../utils/helpers'
+import { User, Gender } from '../../entity/user'
 
 const router = express.Router()
 
@@ -26,7 +27,7 @@ router.get('/test', function (req: Request, res: Response, next) {
         // console.log('data', data)
         Resify.success({
             req, res, data: {
-                key: "value",
+                key: 'value',
                 date,
             // d1: data[0],
             // d2: data[1],
@@ -59,8 +60,8 @@ router.get('/params/:name', (req, res, next) => {
     console.log('params', params, req.query)
 
     const data = new ParamsChecker(req).checkArgs({
-        name: "str",
-        age: "int",
+        name: 'str',
+        age: 'int',
         birth: 'date',
         key: '?float',
         // list: 'list',
@@ -77,8 +78,8 @@ router.post('/params/body', (req, res, next) => {
     console.log('body', body)
 
     const data = new ParamsChecker(req).checkArgs({
-        name: "str",
-        age: "int",
+        name: 'str',
+        age: 'int',
         birth: 'date',
         key: '?float',
         list: 'list',
@@ -88,6 +89,20 @@ router.post('/params/body', (req, res, next) => {
     Resify.success({
         req, res, data:{data}
     })
+})
+
+router.get('/orm', (req, res, next) => {
+    (async function () {
+        const user = new User()
+        user.name = 'EvinK'
+        user.gender = Gender.Male
+        user.avatar = 'test avatar'
+        await user.save()
+        Resify.success({
+            req, res, data: {user}
+        })
+    })()
+
 })
 
 // 由于被app.use函数调用，这里的this实际指的是全局的app(Express)变量

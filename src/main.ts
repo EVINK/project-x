@@ -26,7 +26,6 @@ import { logger, requestPathRecorder } from './server/base/log4j'
 import * as ejs  from 'ejs'
 import { initWebSocketListener } from './server/base/wb'
 
-import "reflect-metadata"
 import "./server/base/mysql"
 
 import * as fs from 'fs'

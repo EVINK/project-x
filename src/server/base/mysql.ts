@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { createConnection, getConnection, QueryRunner, Connection } from 'typeorm'
 import { logger } from './log4j'
 import { NextFunction } from 'express'
@@ -10,9 +11,11 @@ createConnection({
     username: 'root',
     password: 'root',
     database: 'gong-le-duo',
-    entities: ['../../entity/*.ts'],
+    // entities: [__dirname + '/../entity/*.ts'],
+    entities: [__dirname.slice(0, -11) + 'entity/*.js'],
     logging: true,
-    logger: 'advanced-console',
+    // logger: 'advanced-console', // will log ervery detail
+    logger: 'debug',
     /* This option will auto sync db schema
        with entities when application launched
      */
@@ -55,7 +58,7 @@ export class MysqlClient {
     public query(sql: string) {
         return new Promise(async (resolve) => {
             try {
-                if(this.isQueryRunnerReleased) return this.next(Error("db session is closed"))
+                if(this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
                 // establish real database connection using our new query runner
                 await this.session.connect()
                 // await this.session.startTransaction()
@@ -81,7 +84,7 @@ export class MysqlClient {
     public update(sql: string) {
         return new Promise(async (resolve) => {
             try {
-                if (this.isQueryRunnerReleased) return this.next(Error("db session is closed"))
+                if (this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
                 if(!this.session.isTransactionActive) await this.session.startTransaction()
                 const data = await this.session.query(sql)
                 resolve(data)
@@ -97,7 +100,7 @@ export class MysqlClient {
     public commit() {
         return new Promise(async (resolve) => {
             try {
-                if(this.isQueryRunnerReleased) return this.next(Error("db session is closed"))
+                if(this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
                 await this.session.commitTransaction()
                 resolve()
             } catch (err) {
@@ -113,7 +116,7 @@ export class MysqlClient {
     public rollback() {
         return new Promise(async (resolve) => {
             try {
-                if(this.isQueryRunnerReleased) return this.next(Error("db session is closed"))
+                if(this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
                 await this.session.rollbackTransaction()
                 resolve()
             } catch (err) {
