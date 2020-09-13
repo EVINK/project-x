@@ -26,7 +26,7 @@ import { logger, requestPathRecorder } from './server/base/log4j'
 import * as ejs  from 'ejs'
 import { initWebSocketListener } from './server/base/wb'
 
-import "./server/base/mysql"
+import './server/base/mysql'
 
 import * as fs from 'fs'
 
@@ -82,7 +82,7 @@ function init() {
     const server = http.createServer()
     // websocket
     const socketServer = ws.Server
-    const wss = new socketServer({ server: server, path: "/chat" })
+    const wss = new socketServer({ server: server, path: '/chat' })
     initWebSocketListener(wss)
     // express
     server.on('request', app)

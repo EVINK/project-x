@@ -2,13 +2,13 @@ import { app } from '../base/base'
 import { logger, recordError } from '../base/log4j'
 import { ApiError } from '../errors/api-error'
 import { ErrorRusult } from '../error-result-types'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { Resify } from '../utils/resify'
 
 export const errorHandler = () => {
 
     // 404 Catcher
-    app.use(function (req: Request, res: Response, next: Function) {
+    app.use(function (req: Request, res: Response, next: NextFunction) {
         res.statusCode = ErrorRusult.NotFound.statusCode
         next(new ApiError(ErrorRusult.NotFound))
     })
@@ -16,7 +16,7 @@ export const errorHandler = () => {
     app.use(recordError)
 
     // Error handler
-    app.use(function (err: any, req: Request, res: Response, next: Function) {
+    app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
 
         if (err instanceof ApiError)
             return Resify.error({ req, res, et: err.errType})
