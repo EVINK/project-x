@@ -14,25 +14,22 @@ import { User, Gender } from '../../entity/user'
 
 const router = express.Router()
 
-router.get('/test', function (req: Request, res: Response, next) {
-    (async function() {
-        // NOTE: Do not throw error in an async function, it will block node
-        // throw new Error('test error')
-        const rClient = new RedisClient(next)
-        await rClient.set('EvinK', new Date().toISOString())
-        const date = await rClient.get('EvinK')
+router.get('/test', async (req: Request, res: Response, next) => {
+    // throw new Error('test error')
+    const rClient = new RedisClient(next)
+    await rClient.set('EvinK', new Date().toISOString())
+    const date = await rClient.get('EvinK')
 
-        const client = new MysqlClient(next)
-        const data = await client.query('SELECT * from question limit 10')
-        // console.log('data', data)
-        Resify.success({
-            req, res, data: {
-                key: 'value',
-                date,
+    const client = new MysqlClient(next)
+    const data = await client.query('SELECT * from question limit 10')
+    // console.log('data', data)
+    Resify.success({
+        req, res, data: {
+            key: 'value',
+            date,
             // d1: data[0],
             // d2: data[1],
-            }})
-    })()
+        }})
 
 })
 

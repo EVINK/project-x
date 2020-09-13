@@ -1,5 +1,7 @@
 import * as _express from 'express'
 import * as path from 'path'
+import './async-router-wrapper'
+// import 'express-async-errors'
 
 export default null
 export const app = _express()
@@ -20,11 +22,11 @@ export const runMode: RunMode = RunMode.dev
 // 基本信息配置
 export const base = {
     // 视图层
-    viewsDir: "../views",
+    viewsDir: '../views',
     // 静态资源
-    staticResourceDir: "../views/resource",
+    staticResourceDir: '../views/resource',
     // favicon文件名称
-    faviconFileName: "favicon.ico",
+    faviconFileName: 'favicon.ico',
     // host
     host: (() => {
         switch (runMode) {
