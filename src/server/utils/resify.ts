@@ -1,8 +1,9 @@
-import { Request, Response } from "express"
-import { ErrorResultType, ErrorRusult } from "../error-result-types"
-import e = require("express")
-import { logger } from "../base/log4j"
-import { ResifyData } from "../../typings/global"
+import { Request, Response } from 'express'
+import { ErrorResultType, ErrorRusult } from '../error-result-types'
+import e = require('express')
+import { logger } from '../base/log4j'
+import { ResifyData } from '../../typings/global'
+import { Base } from '../../entity/base'
 
 export class Resify {
 
@@ -17,6 +18,13 @@ export class Resify {
             logger.info(logString)
         else
             logger.error(logString)
+
+        if (resData.data) {
+            for (const key of Object.keys(resData.data)) {
+                const obj = resData.data[key]
+                if (obj instanceof Base) resData.data[key] = obj.removeKeys()
+            }
+        }
 
         res.json(resData)
     }
@@ -52,4 +60,3 @@ export class Resify {
     }
 
 }
-
