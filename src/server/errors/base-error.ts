@@ -1,12 +1,16 @@
-import { ErrorResultType } from "../error-result-types"
+import { ErrorType } from '../error-result-types'
 
 export abstract class BaseError extends Error {
 
-    public errType: ErrorResultType;
+    public err: ErrorType;
 
-    constructor(errType: ErrorResultType) {
+    constructor (err: ErrorType, msg?: string) {
         super()
-        this.errType = errType
+        if (!msg) msg = ''
+        this.err = {
+            statusCode: err.statusCode,
+            errorMsg: err.errorMsg + msg
+        }
     }
 
 }

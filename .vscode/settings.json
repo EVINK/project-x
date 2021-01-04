@@ -6,5 +6,18 @@
         "**/node_modules": true,
         "**/bower_components": true,
         "**/tmp": true
-    }
+    },
+    "cSpell.words": [
+        "KHTML",
+        "Openid",
+        "Resify",
+        "datetime",
+        "evink",
+        "gongleduo",
+        "hdel",
+        "hget",
+        "hset",
+        "typeorm",
+        "unstar"
+    ]
 }

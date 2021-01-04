@@ -1,39 +1,76 @@
 import { Request, Response } from 'express'
-import { ErrorResultType, ErrorRusult } from '../error-result-types'
-import e = require('express')
+import { Errors, ErrorType } from '../error-result-types'
 import { logger } from '../base/log4j'
 import { ResifyData } from '../../typings/global'
-import { Base } from '../../entity/base'
+import { Base } from '../entity/base'
+import { request, response } from '../base/base'
+import { genId } from './helpers'
 
 export class Resify {
 
-    private static resify(req:Request, res: Response, resData: ResifyData ): void
-    {
-        if (!res)
-            throw Error('500 Program try to resify data, but [res: Response] is missing. Abort')
-        const now = Date.now()
+    private static removeObjectKeys<T> (obj: any): Base<T> | Base<T>[] | undefined {
+        if (Array.isArray(obj)) {
+            const newArray = []
+            for (const d of obj) {
+                const v = this.removeObjectKeys(d)
+                if (v) newArray.push(v as Base<T>)
+                else newArray.push(d)
+            }
+            return newArray
+        }
+        else if (obj instanceof Base) {
+            return obj.removeKeys()
+        }
+    }
 
-        const logString = `${req.method} ${req.path} - cost ${now - res.arrivedTime}ms - resData: ${JSON.stringify(resData)}`
+    static dataPreHandle (data?: { [x: string]: any }): { [x: string]: any } | undefined{
+        if (data) {
+            for (const key of Object.keys(data)) {
+                let obj = data[key]
+
+                if (key === 'id' || key.includes('Id')) {
+                    if (Array.isArray(obj)) {
+                        const newVal = []
+                        for (const d of obj) {
+                            newVal.push(genId(d))
+                        }
+                        obj = newVal
+                    } else {
+                        obj = genId(obj)
+                    }
+                    data[key] = obj
+                    continue
+                }
+
+                const value = this.removeObjectKeys(obj)
+                if (value) data[key] = value
+            }
+        }
+        return data
+    }
+
+    private static resify (req:Request, res: Response, resData: ResifyData ): void
+    {
+        if (!res || !req)
+            throw Error('500 Program try to resify data, but [res: Response] is missing. Abort')
+        resData.data = this.dataPreHandle(resData.data)
+        res.json(resData)
+        const logString = `${req.method} ${req.originalUrl} - cost ${Date.now() - res.arrivedTime}ms - ${res.get('Content-Length')} bytes - resData: ${JSON.stringify(resData)}`
         if (resData.success)
             logger.info(logString)
         else
             logger.error(logString)
-
-        if (resData.data) {
-            for (const key of Object.keys(resData.data)) {
-                const obj = resData.data[key]
-                if (obj instanceof Base) resData.data[key] = obj.removeKeys()
-            }
-        }
-
-        res.json(resData)
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-types
-    public static success({ req, res, et, data }: { req:Request, res: Response, et?: ErrorResultType, data?: {} }): void
+    public static success (args?: { req?:Request, res?: Response, et?: ErrorType, data?: {} }): void
     {
+        // eslint-disable-next-line prefer-const
+        let { req, res, et, data } = { ...args }
+        if (!req) req = request
+        if (!res) res = response
         if (!et)
-            et = ErrorRusult.Success
+            et = Errors.Success
 
         const resData:ResifyData = {
             code: et.statusCode,
@@ -45,10 +82,14 @@ export class Resify {
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-types
-    public static error({ req, res, et, data }: { req:Request, res: Response, et?: ErrorResultType, data?: {} }): void
+    public static error (args?: { req?:Request, res?: Response, et?: ErrorType, data?: {} }): void
     {
+        // eslint-disable-next-line prefer-const
+        let { req, res, et, data } = { ...args }
+        if (!req) req = request
+        if (!res) res = response
         if (!et)
-            et = ErrorRusult.InternelError
+            et = Errors.InternalError
 
         const resData:ResifyData = {
             code: et.statusCode,
@@ -57,6 +98,14 @@ export class Resify {
             data: data
         }
         this.resify(req, res, resData)
+    }
+
+    public static redirect ({ req, res, url }: { req?: Request, res?: Response, url: string }): void {
+        if (!req) req = request
+        if (!res) res = response
+        res.redirect(302, url)
+        const logString = `${req.method} ${req.originalUrl} - cost ${Date.now() - res.arrivedTime}ms - 302 redirect ${url}`
+        logger.info(logString)
     }
 
 }

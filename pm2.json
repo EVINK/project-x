@@ -1,0 +1,34 @@
+{
+    "apps": [
+        {
+            "exec_mode": "fork_mode",
+            "script": "./app/main.js",
+            "name": "gongleduo-api-server-1",
+            "env": {
+                "PORT": 9002,
+                "NODE_ENV": "production"
+            },
+            "comment": {
+                "error_file": "./logs/pm2/gongleduo-api-server-1.err.log",
+                "out_file": "./logs/pm2/gongleduo-api-server-1.out.log"
+            },
+            "error_file": "/dev/null",
+            "out_file": "/dev/null"
+        },
+        {
+            "exec_mode": "fork_mode",
+            "script": "./app/main.js",
+            "name": "gongleduo-api-server-2",
+            "env": {
+                "PORT": 9003,
+                "NODE_ENV": "production"
+            },
+            "comment": {
+                "error_file": "./logs/pm2/gongleduo-api-server-2.err.log",
+                "out_file": "./logs/pm2/gongleduo-api-server-2.out.log"
+            },
+            "error_file": "/dev/null",
+            "out_file": "/dev/null"
+        }
+    ]
+}

@@ -1,146 +1,122 @@
 import 'reflect-metadata'
-import { createConnection, getConnection, QueryRunner, Connection } from 'typeorm'
+import { Connection, QueryRunner, createConnection, getConnection } from 'typeorm'
+import { MYSQL_SECRET } from '../../secret'
 import { logger } from './log4j'
-import { NextFunction } from 'express'
 
 createConnection({
     name: 'default',
     type: 'mysql',
-    host: 'localhost',
-    port: 3306,
-    username: 'root',
-    password: 'root',
-    database: 'gong-le-duo',
+    host: MYSQL_SECRET.host,
+    port: MYSQL_SECRET.port,
+    username: MYSQL_SECRET.user,
+    password: MYSQL_SECRET.password,
+    database: MYSQL_SECRET.database,
+    charset: 'utf8mb4',
     // entities: [__dirname + '/../entity/*.ts'],
-    entities: [__dirname.slice(0, -11) + 'entity/*.js'],
+    entities: [__dirname.slice(0, -11) + 'server/entity/*.js'],
     logging: true,
-    // logger: 'advanced-console', // will log ervery detail
     logger: 'debug',
+    // logger: 'advanced-console', // will log ervery detail
     /* This option will auto sync db schema
        with entities when application launched
      */
     synchronize: true,
     extra: {
         // Connection pools amount
-        connectionLimit:  100,
+        connectionLimit: 100,
     },
     cache: {
         type: 'redis',
         options: {
-            host: 'localhost',
-            port: 6379,
-            username: '',
-            // password:'',
-            db: 10,
+            host: MYSQL_SECRET.redis.host,
+            port: MYSQL_SECRET.redis.port,
+            username: MYSQL_SECRET.redis.name,
+            // password: MYSQL_SECRET.redis.password,
+            db: MYSQL_SECRET.redis.db,
         },
-        duration: 30000, // 30 seconds
+        duration: 60000, // 60 seconds
     },
 }).then((conn) => {
     logger.info('Connection pool to mysql has established')
 }).catch((err)=>{throw err})
 
-/**
- * 为async/await设计，请在async函数中调用
- */
 export class MysqlClient {
     public connection: Connection
     public session: QueryRunner
     private isQueryRunnerReleased = false
-    private next:NextFunction
 
-    public constructor(next: NextFunction) {
+    public constructor () {
         // get a connection and create a new query runner
         this.connection = getConnection()
         this.session = this.connection.createQueryRunner()
-        this.next = next
     }
 
-    public query(sql: string) {
-        return new Promise(async (resolve) => {
-            try {
-                if(this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
-                // establish real database connection using our new query runner
-                await this.session.connect()
-                // await this.session.startTransaction()
+    public async query (sql: string): Promise<void> {
+        try {
+            if (this.isQueryRunnerReleased) throw Error('db session is closed')
+            // establish real database connection using our new query runner
+            await this.session.connect()
+            // await this.session.startTransaction()
+            const data = await this.session.query(sql)
+            // throw Error('test error')
+            return data
+        } catch (err) {
+            throw err
+        } finally {
+            await this.release()
+        }
+
+    }
+
+    public async update (sql?: string): Promise<void> {
+        try {
+            if (this.isQueryRunnerReleased) throw Error('db session is closed')
+            if (!this.session.isTransactionActive) await this.session.startTransaction()
+            if (sql) {
                 const data = await this.session.query(sql)
-                // throw Error('test error')
-                resolve(data)
-            } catch (err) {
-                /*/错误发生在 resolve 之前，调用方无法获得
-                 * 等待的对象，同时Promise内也没有抛出异常
-                 * 或者reject。所以不会存在调用方比Next
-                 * 更快Response。
-                 */
-                this.next(err)
-                // reject(err)
-                // throw err
-            } finally {
-                await this.release()
+                return data
             }
-
-        })
+        } catch (err) {
+            this.rollback()
+            throw err
+        }
     }
 
-    public update(sql: string) {
-        return new Promise(async (resolve) => {
-            try {
-                if (this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
-                if(!this.session.isTransactionActive) await this.session.startTransaction()
-                const data = await this.session.query(sql)
-                resolve(data)
-            } catch (err) {
-                this.next(err)
-            } finally {
-                // await this.release()
-            }
-
-        })
-    }
-
-    public commit() {
-        return new Promise(async (resolve) => {
-            try {
-                if(this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
-                await this.session.commitTransaction()
-                resolve()
-            } catch (err) {
-                await this.rollback()
-                this.next(err)
-            } finally {
-                await this.release()
-            }
-        })
+    public async commit (): Promise<void> {
+        try {
+            if (this.isQueryRunnerReleased) throw Error('db session is closed')
+            await this.session.commitTransaction()
+        } catch (err) {
+            await this.rollback()
+            throw err
+        } finally {
+            await this.release()
+        }
 
     }
 
-    public rollback() {
-        return new Promise(async (resolve) => {
-            try {
-                if(this.isQueryRunnerReleased) return this.next(Error('db session is closed'))
-                await this.session.rollbackTransaction()
-                resolve()
-            } catch (err) {
-                this.next(err)
-            } finally {
-                await this.release()
-            }
-        })
-
+    public async rollback (): Promise<void> {
+        try {
+            if (this.isQueryRunnerReleased) throw Error('db session is closed')
+            await this.session.rollbackTransaction()
+        } catch (err) {
+            throw err
+        } finally {
+            await this.release()
+        }
     }
 
-    public release() {
-        return new Promise(async (resolve) => {
-            if(this.isQueryRunnerReleased) return
-            this.isQueryRunnerReleased = true
-            try {
+    public async release (): Promise<void> {
+        if (this.isQueryRunnerReleased) return
+        this.isQueryRunnerReleased = true
+        try {
+            if (!this.session.isReleased)
                 await this.session.release()
-                // console.log('isQueryRunnerReleased', this.isQueryRunnerReleased)
-                resolve()
-            } catch (err) {
-                this.isQueryRunnerReleased = false
-                logger.error(err)
-                resolve()
-            }
-        })
+            // console.log('isQueryRunnerReleased', this.isQueryRunnerReleased)
+        } catch (err) {
+            this.isQueryRunnerReleased = false
+            logger.error(err)
+            throw err
+        }
     }
 }

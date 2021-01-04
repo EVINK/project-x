@@ -11,3 +11,10 @@ Makefile
 bin/
 nohup.out
 app/
+.vscode/*.sql
+secret.ts
+test/
+*.rdb
+*.p8
+*.p12
+*.cer
