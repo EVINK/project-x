@@ -161,9 +161,9 @@ export class ParamsChecker {
         throw new Failed(Errors.ArgsError, `statement illegal: ${statement}`)
     }
 
-    public checkArgs<T> (data: T): T | {[x:string]: any} {
+    public checkArgs<T extends { [x: string]: any }>(data: T): T {
 
-        const newData: any = {}
+        const newData = {} as any
 
         for (const d of Object.entries(data)) {
             const key = (d[0]).toString()

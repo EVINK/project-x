@@ -1,5 +1,4 @@
 import * as ws from 'ws'
-import { Agent } from '../entity/agent'
 import { Base, BaseModelWrapper } from '../entity/base'
 import { User } from '../entity/user'
 import { NotificationChannelMessage, NotificationMessageType, ResifyData, WS } from '../../typings/global'
@@ -20,6 +19,8 @@ export const WebSocketClients: {
 } = {
     agents: {}, users: {},
 }
+
+type Agent = { [key: string]: any}
 
 function getWebSocketClient (uid: number, isAgent?: boolean): WebSocketClient | void {
     let client = undefined
@@ -84,7 +85,7 @@ class WebSocketClient {
                     this.isAgent = g.payload.agent
                     this.client.uid = decodeId(g.payload.chaosId)
                     if (this.isAgent) {
-                        this.user = await AgentService.getAgent(this.client.uid)
+                        this.user = {} as User
                         WebSocketClients.agents[this.user.id] = this
                     } else {
                         this.user = await UserService.getUser(this.client.uid)

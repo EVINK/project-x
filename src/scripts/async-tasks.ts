@@ -5,8 +5,6 @@ import * as sourceMapSupport from 'source-map-support'
 import * as log4js from 'log4js'
 import { Log4jsConfig, LogLayouts } from '../server/base/log4j-config'
 import { AsyncRedis } from '../server/base/redis'
-import { UserFollower } from '../server/entity/thread'
-import { ThreadService } from '../server/services/thread-service'
 import { User } from '../server/entity/user'
 import { logger } from '../server/base/log4j'
 

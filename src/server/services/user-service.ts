@@ -1,7 +1,7 @@
 /**
  * Just a example for demonstration, do not use directly.
 */
-import { ChineseEthnic as ChineseEthnic, User, WorkerProfileCard } from '../entity/user'
+import { ChineseEthnic as ChineseEthnic, User } from '../entity/user'
 import { logger } from '../base/log4j'
 import { AsyncRedis } from '../base/redis'
 import { Errors } from '../error-result-types'
@@ -92,15 +92,6 @@ export class UserService {
 
     static async updateUserCache (user: User): Promise<void> {
         await AsyncRedis.hdel(this.UID_TO_USER_HASH, user.id.toString())
-    }
-
-    static async getWorkerProfileCard (uid:number): Promise<WorkerProfileCard> {
-        const profileCard = await WorkerProfileCard.findOne({userId: uid})
-        if (!profileCard) throw new Success(Errors.ResourceNotExists)
-        for (const ethnic of ChineseEthnic) {
-            if (ethnic.id === profileCard.ethnic) profileCard.attachData.ethnicName = ethnic.name
-        }
-        return profileCard
     }
 
 }

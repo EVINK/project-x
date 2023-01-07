@@ -1,5 +1,5 @@
 /**
- * Just a example for demonstration, do not use directly.
+ * Just an example for demonstration, do not use directly.
 */
 import { RunMode, runMode } from '../../secret'
 import { app, requestInterceptor } from '../base/base'

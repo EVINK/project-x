@@ -60,8 +60,6 @@ export class MysqlClient {
             const data = await this.session.query(sql)
             // throw Error('test error')
             return data
-        } catch (err) {
-            throw err
         } finally {
             await this.release()
         }
@@ -99,8 +97,6 @@ export class MysqlClient {
         try {
             if (this.isQueryRunnerReleased) throw Error('db session is closed')
             await this.session.rollbackTransaction()
-        } catch (err) {
-            throw err
         } finally {
             await this.release()
         }

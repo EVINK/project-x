@@ -7,7 +7,6 @@ import { genRandomStringBaseOnTime, ParamsChecker } from '../utils/helpers'
 import { getPrivateDownloadUrl, getUploadToken } from '../base/qiniu'
 import { QINIU_SERCRET } from '../../secret'
 import { Auth } from '../utils/auth'
-import { SystemMessage } from '../entity/system-message'
 import { WorkerDevice } from '../entity/device-info'
 
 router.get('/ping', (req, res) => {
@@ -53,8 +52,8 @@ router.get('/upload/token', Auth, (req, res) => {
     })
 })
 
-router.get('/system/messages', Auth, async (req, res) => {
-    const messages = await SystemMessage.find()
+router.get('/system/messages', Auth, (req, res) => {
+    const messages = ''
     return Resify.success({req, res, data: {messages}})
 })
 
@@ -74,7 +73,6 @@ router.post('/device/register', async (req, res) => {
             platform: args.platform,
             modelOrUa: args.model
         })
-        if (args.userId) record.userId = args.userId
     } else {
         // as new
         record = new WorkerDevice({

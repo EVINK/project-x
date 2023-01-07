@@ -9,13 +9,9 @@ import { Resify } from '../utils/resify'
 import { AsyncRedis } from '../base/redis'
 import { MysqlClient } from '../base/mysql'
 import { decodeId, genId, ParamsChecker } from '../utils/helpers'
-import { EducationalBackground, Gender, User, WorkerProfileCard } from '../entity/user'
-import { Job, JobCategory } from '../entity/job'
-import { Thread } from '../entity/thread'
-import { ThreadService } from '../services/thread-service'
+import { EducationalBackground, Gender, User } from '../entity/user'
 import { notify } from '../base/wb'
 import { UserService } from '../services/user-service'
-import { Conversation, Message, MessageType, UserType } from '../entity/message'
 import { auth } from '../utils/auth'
 
 const router = express.Router()
@@ -35,7 +31,8 @@ router.get('/genRefreshToken', async (req: Request, res: Response, next) => {
     Resify.success({
         req, res, data: {
             token
-        }})
+        }
+    })
 
 })
 
@@ -58,7 +55,8 @@ router.get('/redis', async function (req: Request, res: Response, next) {
     Resify.success({
         req, res, data: {
             data
-        }})
+        }
+    })
 
 })
 
@@ -76,7 +74,7 @@ router.get('/params/:name', (req, res, next) => {
     })
 
     Resify.success({
-        req, res, data: {data}
+        req, res, data: { data }
     })
 })
 
@@ -94,7 +92,7 @@ router.post('/params/body', (req, res, next) => {
     })
 
     Resify.success({
-        req, res, data: {data}
+        req, res, data: { data }
     })
 })
 
@@ -103,12 +101,13 @@ router.get('/orm', async (req, res, next) => {
     const client = new MysqlClient()
     await client.update()
 
-    const jobCategory = new JobCategory({
-        name: 'evink-category2',
-        noExists: 'test',
-    })
-    // await jobCategory.save()
-    await client.session.manager.save(jobCategory)
+    // const jobCategory = new JobCategory({
+    //     name: 'evink-category2',
+    //     noExists: 'test',
+    // })
+    // // await jobCategory.save()
+    // await client.session.manager.save(jobCategory)
+    const jobCategory = {}
 
     const user = new User({
         phone: Math.floor(Math.random() * 100000)
@@ -125,7 +124,7 @@ router.get('/orm', async (req, res, next) => {
     user.attachData.arr = [jobCategory]
 
     Resify.success({
-        req, res, data: {user: [user]}
+        req, res, data: { user: [user] }
     })
 
 })
@@ -142,10 +141,12 @@ router.get('/notification', async (req, res) => {
     const args = ParamsChecker.checkArgs({
         uid: 'int'
     })
-    await notify({ uid: args.uid, type: 'system', data: {
-        message: '这是一个系统消息'
-    }})
-    Resify.success({req, res})
+    await notify({
+        uid: args.uid, type: 'system', data: {
+            message: '这是一个系统消息'
+        }
+    })
+    Resify.success({ req, res })
 })
 
 router.get('/decode/id', (req, res) => {
@@ -156,7 +157,7 @@ router.get('/decode/id', (req, res) => {
     console.log('res.local', res.local)
     if (!args.uid) decodeValue = decodeId(res.local.chaosId)
     else decodeValue = decodeId(args.uid)
-    return Resify.success({ req, res, data: {decodeValue}})
+    return Resify.success({ req, res, data: { decodeValue } })
 
 })
 

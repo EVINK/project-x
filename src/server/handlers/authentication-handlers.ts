@@ -12,7 +12,6 @@ import { User } from '../entity/user'
 import { ParamsChecker, PasswordEncryption, genRandomStringBaseOnTime, decodeId } from '../utils/helpers'
 import { UserService } from '../services/user-service'
 import { AgentService } from '../services/agent-service'
-import { ThreadService } from '../services/thread-service'
 
 router.get('/token/refresh', async (req, res) => {
     const headers = req.headers
@@ -104,7 +103,7 @@ router.post('/register', async (req, res) => {
     }
     user = await user.save()
     const d = await UserService.registerUser({ token: data.token, uid: user.id })
-    user.attachData.activeIndex = await ThreadService.getActiveIndex({uid: user.id})
+    user.attachData.activeIndex = 1
     Resify.success({
         req, res, data: {
             user,
@@ -129,7 +128,7 @@ router.post('/login', async (req, res) => {
     if (!await PasswordEncryption.compare(d.password, user.password))
         throw new Success(Errors.PasswordIncorrect)
     const data = await UserService.registerUser({ token: d.token, uid: user.id })
-    user.attachData.activeIndex = await ThreadService.getActiveIndex({uid: user.id})
+    user.attachData.activeIndex = 1
     Resify.success({
         req, res, data: {
             user,

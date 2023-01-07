@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname, base.staticResourceDir)))
 app.use(express.static(path.join(__dirname, base.staticResourceDir)))
 
 // 跨域
-app.use(function (req, res, next){
+app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*')
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization,X-Refresh-Token')
     res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE')
@@ -95,5 +95,5 @@ function init () {
 }
 
 process.on('unhandledRejection', function (err, promise) {
-    promise.catch((e)=> logger.error('System has catched an unhandled rejection:', e))
+    promise.catch((e) => logger.error('System has catched an unhandled rejection:', e))
 })
