@@ -70,7 +70,7 @@ function _createConnection (configs?: { host: string, port: number, cache?: Reco
        with entities when application launched
      */
         synchronize: true,
-        cache: configs.cache
+        cache: configs.cache,
         extra: {
         // Connection pools amount
             connectionLimit: 100,
