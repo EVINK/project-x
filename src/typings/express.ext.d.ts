@@ -1,8 +1,8 @@
 type Gender = {
-     Male: 'male'
-     Female: 'female'
-     Other: 'other'
- }
+    Male: 'male'
+    Female: 'female'
+    Other: 'other'
+}
 
 declare namespace Express {
     interface Response {

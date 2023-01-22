@@ -41,7 +41,13 @@ router.get('/error', (req: Request, res: Response) => {
     Resify.success()
 })
 
-router.get('/redis', async function (req: Request, res: Response, next) {
+router.get('/redis', async (req, res) => {
+    await AsyncRedis.set('evink', '1')
+    const value = await AsyncRedis.get('evink')
+    return Resify.success({data: {value}})
+})
+
+router.get('/mysql', async function (req: Request, res: Response, next) {
 
     const client = new MysqlClient()
     const data = await client.update(

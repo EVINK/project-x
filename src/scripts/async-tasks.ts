@@ -24,7 +24,7 @@ async function getTask () {
     const promises = []
     while (true) {
         // eslint-disable-next-line no-await-in-loop
-        let data: string | {task: string, params: any} = await AsyncRedis.lpop(AsyncRedis.ASYNC_TASKS_LIST)
+        let data: any = await AsyncRedis.lpop(AsyncRedis.ASYNC_TASKS_LIST)
         if (!data) break
         try {
             data = JSON.parse(data) as {task: string, params: any}

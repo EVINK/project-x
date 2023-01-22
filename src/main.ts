@@ -12,6 +12,8 @@ fs.readFile('./signature', 'utf8', function (err, data) {
 })
 
 import * as http from 'http'
+const server = http.createServer()
+
 import * as express from 'express'
 import * as path from 'path'
 import * as compression from 'compression'
@@ -63,6 +65,8 @@ app.use(requestPathRecorder)
 APIHandler()
 errorHandler()
 
+app.set('runMode', process.env.NODE_ENV)
+
 if (process.env.PORT) {
     app.set('port', process.env.PORT)
 } else {
@@ -73,7 +77,6 @@ const host = base.host
 const port = app.get('port')
 
 function init () {
-    const server = http.createServer()
     // websocket
     const socketServer = ws.Server
     const wss = new socketServer({ server: server, path: '/notification' })
@@ -89,8 +92,8 @@ function init () {
     })
     if (runMode === RunMode.dev) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const easyMonitor = require('easy-monitor')
-        easyMonitor('main')
+        // const easyMonitor = require('easy-monitor')
+        // easyMonitor('main')
     }
 }
 

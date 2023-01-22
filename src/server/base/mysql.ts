@@ -1,44 +1,84 @@
 import 'reflect-metadata'
 import { Connection, QueryRunner, createConnection, getConnection } from 'typeorm'
-import { MYSQL_SECRET } from '../../secret'
+import { MYSQL_SECRET, runMode, RunMode, sshRemoteHost } from '../../secret'
+import { createIntermediateServer } from '../utils/helpers'
 import { logger } from './log4j'
+import createSSHTunnel from './ssh-tunnel'
+import * as net from 'net'
 
-createConnection({
-    name: 'default',
-    type: 'mysql',
-    host: MYSQL_SECRET.host,
-    port: MYSQL_SECRET.port,
-    username: MYSQL_SECRET.user,
-    password: MYSQL_SECRET.password,
-    database: MYSQL_SECRET.database,
-    charset: 'utf8mb4',
-    // entities: [__dirname + '/../entity/*.ts'],
-    entities: [__dirname.slice(0, -11) + 'server/entity/*.js'],
-    logging: true,
-    logger: 'debug',
-    // logger: 'advanced-console', // will log ervery detail
-    /* This option will auto sync db schema
+if (runMode === RunMode.dev) {
+    createSSHTunnel().then(async (conn) => {
+
+        const server = await createIntermediateServer(socket => {
+            conn.forwardOut(
+                socket.remoteAddress as string,
+                socket.remotePort as number,
+                MYSQL_SECRET.host,
+                MYSQL_SECRET.port,
+                (error, stream) => {
+                    if (error) {
+                        socket.end()
+                        return
+                    }
+                    socket.pipe(stream).pipe(socket)
+                }
+            )
+        })
+        if (!server) throw new Error('Failed to create intermedia server')
+
+        _createConnection({
+            host: (server.address() as net.AddressInfo).address,
+            port: (server.address() as net.AddressInfo).port,
+        })
+    })
+} else {
+    _createConnection()
+}
+
+function _createConnection (configs?: { host: string, port: number, cache?: Record<string, unknown>}) {
+    if (!configs) configs = {
+        host: MYSQL_SECRET.host,
+        port: MYSQL_SECRET.port,
+        cache: {
+            type: 'redis',
+            options: {
+                host: MYSQL_SECRET.redis.host,
+                port: MYSQL_SECRET.redis.port,
+                username: MYSQL_SECRET.redis.name,
+                // password: MYSQL_SECRET.redis.password,
+                db: MYSQL_SECRET.redis.db,
+            },
+            duration: 60000, // 60 seconds
+        }
+    }
+    logger.debug('Mysql Configs:', configs)
+    createConnection({
+        name: 'default',
+        type: 'mysql',
+        host: configs.host,
+        port: configs.port,
+        username: MYSQL_SECRET.user,
+        password: MYSQL_SECRET.password,
+        database: MYSQL_SECRET.database,
+        charset: 'utf8mb4',
+        // entities: [__dirname + '/../entity/*.ts'],
+        entities: [__dirname.slice(0, -11) + 'server/entity/*.js'],
+        logging: true,
+        logger: 'debug',
+        // logger: 'advanced-console', // will log ervery detail
+        /* This option will auto sync db schema
        with entities when application launched
      */
-    synchronize: true,
-    extra: {
+        synchronize: true,
+        cache: configs.cache
+        extra: {
         // Connection pools amount
-        connectionLimit: 100,
-    },
-    cache: {
-        type: 'redis',
-        options: {
-            host: MYSQL_SECRET.redis.host,
-            port: MYSQL_SECRET.redis.port,
-            username: MYSQL_SECRET.redis.name,
-            // password: MYSQL_SECRET.redis.password,
-            db: MYSQL_SECRET.redis.db,
+            connectionLimit: 100,
         },
-        duration: 60000, // 60 seconds
-    },
-}).then((conn) => {
-    logger.info('Connection pool to mysql has established')
-}).catch((err)=>{throw err})
+    }).then((conn) => {
+        logger.info('Connection pool to mysql has established')
+    }).catch((err)=>{throw err})
+}
 
 export class MysqlClient {
     public connection: Connection

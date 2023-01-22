@@ -109,7 +109,7 @@ export class ParamsChecker {
         }
         else if (statement === 'float') {
             const newVal = parseFloat(value)
-            if (typeof newVal === 'number' && newVal != NaN && Math.floor(newVal) !== newVal)
+            if (typeof newVal === 'number' && !Number.isNaN(newVal) && Math.floor(newVal) !== newVal)
                 return newVal
             else throw Error
         }
@@ -161,7 +161,7 @@ export class ParamsChecker {
         throw new Failed(Errors.ArgsError, `statement illegal: ${statement}`)
     }
 
-    public checkArgs<T extends { [x: string]: any }>(data: T): T {
+    public checkArgs<T extends { [x: string]: any }> (data: T): T {
 
         const newData = {} as any
 
@@ -206,7 +206,7 @@ export class ParamsChecker {
      * @param data
      */
     static checkArgs<T> (data: T): T | {[x:string]: any} {
-        return new ParamsChecker(request).checkArgs(data)
+        return new ParamsChecker(request).checkArgs(data as any)
     }
 
 }
@@ -246,3 +246,15 @@ export class PasswordEncryption {
 //             '$2b$10$FDcME5UMujZekq0ZhIFN0uizMBWXRS.ctmTZQTkERXeoDcjvDYcSb'), // false
 //     )
 // })()
+
+import * as net from 'net'
+
+export function createIntermediateServer (connectionListener: ((socket: net.Socket) => void) | undefined): Promise < net.Server > {
+    return new Promise((resolve, reject) => {
+        const server = net.createServer(connectionListener)
+        server.once('error', reject)
+        server.listen(0, () => {
+            resolve(server)
+        })
+    })
+}
