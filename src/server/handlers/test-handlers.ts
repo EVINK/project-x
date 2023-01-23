@@ -37,7 +37,7 @@ router.get('/genRefreshToken', async (req: Request, res: Response, next) => {
 })
 
 router.get('/error', (req: Request, res: Response) => {
-    // logger.error('error')
+    if (1) throw Error('testing Error')
     Resify.success()
 })
 
